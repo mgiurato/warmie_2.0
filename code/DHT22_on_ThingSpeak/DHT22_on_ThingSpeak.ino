@@ -7,7 +7,7 @@ const char* ssid  = SECRET_SSID;
 const char* password = SECRET_PASS;
 
 // ThingSpeak
-String apiKey = THINGSPEAK_API_KEY;
+String apiKey = SECRET_THINGSPEAK_API_KEY;
 const char* server = "api.thingspeak.com";
 
 // DHT22
