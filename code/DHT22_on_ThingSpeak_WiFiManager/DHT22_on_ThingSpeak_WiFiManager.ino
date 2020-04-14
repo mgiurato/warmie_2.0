@@ -1,13 +1,19 @@
-#include "arduino_secrets.h"
+//#include "arduino_secrets.h"
 #include <ESP8266WiFi.h>
 #include <DHT.h>
+#include <EEPROM.h>
+#include <ESP8266WebServer.h>
+#include <DNSServer.h>
+#include <WiFiManager.h>
 
 // Wifi connection to the router
-const char* ssid  = SECRET_SSID;
-const char* password = SECRET_PASS;
+//const char* ssid  = SECRET_SSID;
+//const char* password = SECRET_PASS;
 
 // ThingSpeak
-String apiKey = SECRET_THINGSPEAK_API_KEY;
+#define SECRET_THINGSPEAK_API_KEY_LENGTH 16
+char apiKey[SECRET_THINGSPEAK_API_KEY_LENGTH] = "";
+//String apiKey = SECRET_THINGSPEAK_API_KEY;
 const char* server = "api.thingspeak.com";
 
 // DHT22
@@ -21,26 +27,33 @@ const char* server = "api.thingspeak.com";
 
 DHT dht(DHTPIN, DHTTYPE);
 
+//flag for saving data
+bool shouldSaveConfig = false;
+
 WiFiClient client;
 
 void setup() {
   Serial.begin(115200);
   while (!Serial); // Wait for the Serial monitor to be opened
+  
+  EEPROM.begin(SECRET_THINGSPEAK_API_KEY_LENGTH);
+  Serial.println("read API key");
+  readApiKeyFromEeprom(0);
+  Serial.println(apiKey);
 
-  // Set WiFi to station mode and disconnect from an AP if it was Previously
-  // connected
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  delay(100);
+  WiFiManager wifiManager;
+  wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-  // Attempt to connect to Wifi network:
-  Serial.print("Connecting Wifi: ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, password);
+  // Uncomment and run it once, if you want to erase all the stored information
+  //wifiManager.resetSettings();
+  
+  WiFiManagerParameter custom_api_key("apikey", "ThingSpeak API Key", apiKey, 20);
+  wifiManager.addParameter(&custom_api_key);
+  wifiManager.autoConnect();
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  strcpy(apiKey, custom_api_key.getValue());
+  if (shouldSaveConfig) {
+    writeApiKeyToEeprom(0);
   }
 
   Serial.println("");
@@ -50,9 +63,6 @@ void setup() {
 
   pinMode(DHTPOWER, OUTPUT);
   delay(500);
-  digitalWrite(DHTPOWER, HIGH);
-  delay(500);
-
   dht.begin();
   Serial.println("ESP8266 initialised");
 }
@@ -80,7 +90,8 @@ void loop(){
     client.print("POST /update HTTP/1.1\n");
     client.print("Host: api.thingspeak.com\n");
     client.print("Connection: close\n");
-    client.print("X-THINGSPEAKAPIKEY: " + apiKey + "\n");
+    client.print("X-THINGSPEAKAPIKEY: ");
+    client.println(apiKey);
     client.print("Content-Type: application/x-www-form-urlencoded\n");
     client.print("Content-Length: ");
     client.print(postStr.length());
@@ -101,4 +112,24 @@ void loop(){
   
   // thingspeak needs minimum 15 sec delay between updates
   delay(60000);
+}
+
+//callback notifying us of the need to save config
+void saveConfigCallback () {
+  Serial.println("Should save config");
+  shouldSaveConfig = true;
+}
+
+void readApiKeyFromEeprom(int offset) {
+  for (int i = offset; i < SECRET_THINGSPEAK_API_KEY_LENGTH; i++ ) {
+    apiKey[i] = EEPROM.read(i);
+  }
+  EEPROM.commit();
+}
+
+void writeApiKeyToEeprom(int offset) {
+  for (int i = offset; i < SECRET_THINGSPEAK_API_KEY_LENGTH; i++ ) {
+    EEPROM.write(i, apiKey[i]);
+  }
+  EEPROM.commit();
 }

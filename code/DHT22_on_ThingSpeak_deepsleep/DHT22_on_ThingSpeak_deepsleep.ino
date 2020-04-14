@@ -15,9 +15,10 @@ const char* server = "api.thingspeak.com";
 #define DHTPIN D2
 #define DHTTYPE DHT22
 
-// Connect pin 1 (on the left) of the sensor to D0
+// Connect pin 1 (on the left) of the sensor to D1
 // Connect pin 2 of the sensor to whatever your DHTPIN is
 // Connect pin 4 (on the right) of the sensor to GROUND
+// Shortcut D0 pin with RST pin of the NodeMCU
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -26,6 +27,7 @@ WiFiClient client;
 void setup() {
   Serial.begin(115200);
   while (!Serial); // Wait for the Serial monitor to be opened
+  Serial.println(" ");
 
   // Set WiFi to station mode and disconnect from an AP if it was Previously
   // connected
@@ -51,16 +53,11 @@ void setup() {
   pinMode(DHTPOWER, OUTPUT);
   delay(500);
   digitalWrite(DHTPOWER, HIGH);
-  delay(500);
+  delay(1000);
 
   dht.begin();
   Serial.println("ESP8266 initialised");
-}
 
-void loop(){
-  digitalWrite(DHTPOWER, HIGH);
-  delay(1000);
-  
   float h = dht.readHumidity();
   float t = dht.readTemperature();
 
@@ -95,10 +92,10 @@ void loop(){
   }
   client.stop();
 
-  Serial.println("Waiting...");
-
   digitalWrite(DHTPOWER, LOW);
   
-  // thingspeak needs minimum 15 sec delay between updates
-  delay(60000);
+  ESP.deepSleep(60e6); 
+}
+
+void loop(){
 }
