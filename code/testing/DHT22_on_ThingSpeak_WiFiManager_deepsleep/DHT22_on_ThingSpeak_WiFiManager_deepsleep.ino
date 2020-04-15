@@ -6,8 +6,8 @@
 #include <WiFiManager.h>
 
 // ThingSpeak
-#define SECRET_THINGSPEAK_API_KEY_LENGTH 16
-char apiKey[SECRET_THINGSPEAK_API_KEY_LENGTH] = "";
+#define WRITE_API_KEY_LENGTH 16
+char apiKey[WRITE_API_KEY_LENGTH] = "";
 const char* server = "api.thingspeak.com";
 
 // DHT22
@@ -31,7 +31,7 @@ void setup() {
   Serial.begin(115200);
   while (!Serial); // Wait for the Serial monitor to be opened
 
-  EEPROM.begin(SECRET_THINGSPEAK_API_KEY_LENGTH);
+  EEPROM.begin(WRITE_API_KEY_LENGTH);
   Serial.println("read API key");
   readApiKeyFromEeprom(0);
   Serial.println(apiKey);
@@ -119,14 +119,14 @@ void saveConfigCallback () {
 }
 
 void readApiKeyFromEeprom(int offset) {
-  for (int i = offset; i < SECRET_THINGSPEAK_API_KEY_LENGTH; i++ ) {
+  for (int i = offset; i < WRITE_API_KEY_LENGTH; i++ ) {
     apiKey[i] = EEPROM.read(i);
   }
   EEPROM.commit();
 }
 
 void writeApiKeyToEeprom(int offset) {
-  for (int i = offset; i < SECRET_THINGSPEAK_API_KEY_LENGTH; i++ ) {
+  for (int i = offset; i < WRITE_API_KEY_LENGTH; i++ ) {
     EEPROM.write(i, apiKey[i]);
   }
   EEPROM.commit();
