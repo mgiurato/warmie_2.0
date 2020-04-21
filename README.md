@@ -42,3 +42,13 @@ Open the manager from the Sketch -> Include Library -> Manage Libraries menu.
 -	Adafruit ADXL343 v1.2.0
 -	Adafruit Unified Sensor v1.1.2
 -	DHT sensor library v1.3.8
+-	ThinkSpeak v1.5.0
+-	Adafruit SSD1306 v2.2.1
+-	Adafruit GFX Library v1.7.5
+-	Adafruit ILI9341 v1.5.4
+-	Adafruit STMPE610 v1.1.1
+-	Adafruit TouchScreen v1.0.5
+-	Adafruit BME280 Library v2.0.1
+-	NTPClient v3.2.0
+-	Time v1.6.0
+-	Timezone v1.2.4
