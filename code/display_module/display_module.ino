@@ -5,6 +5,10 @@
 #include <WiFiManager.h>
 #include <ArduinoJson.h>
 #include <ThingSpeak.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include "splashscreen.h"
 
 #define FACTORY_RESET 0
 #define MODULE_TYPE "Display module"
@@ -12,11 +16,17 @@
 #define CHANNEL_ID_SIZE 7+1
 #define READ_API_KEY_SIZE 16+1
 
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
 char channel_id[CHANNEL_ID_SIZE];
 char read_api_key[READ_API_KEY_SIZE];
 const int temperature_field = 1;
 const int humidity_field = 2;
-const int apparent_temperature_field = 3;
+const int pressure_field = 3;
+const int battery_voltage_field = 4;
 int statusCode;
 
 bool shouldSaveConfig = false;
@@ -32,6 +42,17 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);
   Serial.println();
+
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setTextSize(1);
+  display.drawBitmap(0,0, splashscreen, LOGO_WIDTH, LOGO_HEIGHT, 1);
+  display.display();
+  delay(1000);
+  display.setCursor(1, 1);
+  display.print("ESP8266 set-up...");
+  display.display();
 
   if (FACTORY_RESET) {
     //clean FS, for testing
@@ -122,7 +143,14 @@ void setup() {
 
   ThingSpeak.begin(client);  // Initialize ThingSpeak
 
-  Serial.println("ESP8266 initialised");
+  Serial.println("ESP8266 initialised!");
+  
+  display.clearDisplay();
+  display.drawBitmap(0,0, splashscreen, LOGO_WIDTH, LOGO_HEIGHT, 1);
+  display.display();
+  display.setCursor(1, 1);
+  display.print("ESP8266 initialised!");
+  display.display();
 }
 
 void loop() {
@@ -147,17 +175,35 @@ void loop() {
     Serial.println("Unable to read channel / No internet connection");
   }
   delay(100);
-
-  float hic = ThingSpeak.readFloatField(atoi(channel_id), apparent_temperature_field, read_api_key);
-  statusCode = ThingSpeak.getLastReadStatus();
-  if (statusCode == 200) {
-    Serial.print("Apparent temperature: ");
-    Serial.print(hic);
-    Serial.println(" degrees Celcius.");
-  } else {
-    Serial.println("Unable to read channel / No internet connection");
-  }
-  delay(100);
-
+  
+  displayTemperature(t);
+  delay(3000);
+  displayHumidity(h);
+  delay(3000);
+  
   delay(60000);
+}
+
+void displayTemperature(float temperature) {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setCursor(29, 10);
+  display.print(temperature);
+  display.setCursor(90, 3);
+  display.setTextSize(1);
+  display.print("o");
+  display.setCursor(97, 10);
+  display.setTextSize(2);
+  display.print("C");
+  display.display();
+}
+
+void displayHumidity(float humidity) {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setCursor(29, 10);
+  display.print(humidity);
+  display.setCursor(92, 10);
+  display.print("%");
+  display.display();
 }
