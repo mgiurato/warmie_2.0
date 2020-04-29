@@ -15,12 +15,11 @@
 #define CHANNEL_ID_SIZE 7+1
 #define WRITE_API_KEY_SIZE 16+1
 
-#define BME_POWER_PIN D3
-#define BME_GROUND_PIN D4
+#define BME_POWER_PIN D4
 #define BME_I2C_ADDRESS 0x76
 
 #define VOLTAGE_PIN A0
-#define VOLTAGE_GAIN 3.92 / 426
+#define VOLTAGE_GAIN 4.5/1023.0
 #define VOLTAGE_THRESHOLD 3.5
 
 #define SERIAL_BAUD 115200
@@ -141,9 +140,7 @@ void setup() {
   ThingSpeak.begin(client);  // Initialize ThingSpeak
 
   pinMode(BME_POWER_PIN, OUTPUT);
-  pinMode(BME_GROUND_PIN, OUTPUT);
   digitalWrite(BME_POWER_PIN, HIGH);
-  digitalWrite(BME_GROUND_PIN, LOW);
   delay(1000);
 
   bme.begin(BME_I2C_ADDRESS);
@@ -158,7 +155,7 @@ void setup() {
 
   Serial.print("Temperature: ");
   Serial.print(t);
-  Serial.print(" degrees Celcius, Humidity: ");
+  Serial.print(" degrees Celsius, Humidity: ");
   Serial.print(h);
   Serial.print(" %, Pressure: ");
   Serial.print(p);
