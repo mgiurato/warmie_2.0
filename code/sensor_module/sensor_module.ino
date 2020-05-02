@@ -141,7 +141,7 @@ void setup() {
 
   pinMode(BME_POWER_PIN, OUTPUT);
   digitalWrite(BME_POWER_PIN, HIGH);
-  delay(1000);
+  delay(500);
 
   bme.begin(BME_I2C_ADDRESS);
 
@@ -150,8 +150,14 @@ void setup() {
   float p = bme.readPressure() / 100.0F;
 
   digitalWrite(BME_POWER_PIN, LOW);
-  
-  float v = (float)analogRead(VOLTAGE_PIN) * VOLTAGE_GAIN;
+  delay(500);
+
+  float v = 0;
+  for (int i = 0; i < 10; i++) {
+    v = (float)analogRead(VOLTAGE_PIN) * VOLTAGE_GAIN + v;
+    delay(10);
+  }
+  v = v / 10;
 
   Serial.print("Temperature: ");
   Serial.print(t);
